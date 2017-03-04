@@ -8,6 +8,9 @@ def actionValid(action, state):
 def actionRelevant(action, sg):
   return not sg[0].isdisjoint(action[2]) or not sg[1].isdisjoint(action[3])
 
+def applyAction(state, action):
+  return (state | action[2]) - action[3]
+
 def planForward(actions, i, g):
   plan = []
   state = i.copy()
@@ -20,7 +23,7 @@ def planForward(actions, i, g):
     acted = False
     for action in actions:
       if actionValid(action, state):
-        plan.append(action[4])
+        plan.append(action)
         state = (state | action[2]) - action[3]
         if state in pastStates:
           return (False, "Repeat of previously visited state")
@@ -42,7 +45,7 @@ def planBackward(actions, i, g):
     acted = False
     for action in actions:
       if actionRelevant(action, sg):
-        plan.insert(0, action[4])
+        plan.insert(0, action)
         sg[0] = (sg[0] - action[2]) | action[0]
         sg[1] = (sg[1] - action[3]) | action[1]
         if sg in pastSgs:
@@ -55,10 +58,27 @@ def planBackward(actions, i, g):
 
 def planSTRIPS(actions, i, g):
   plan = []
+  s = i.copy()
   while True:
-    pass
+    if s >= g[0] and s.isdisjoint(g[1]):
+      return (True, plan)
+    shuffle(actions)
+    acted = False
+    for a in actions:
+      if actionRelevant(a, g):
+        recRes = planSTRIPS(actions, s, a)
+        if not recRes[0]:
+          return recRes
+        for pa in recRes[1]:
+          s = applyAction(s, pa)
+        s = applyAction(s, a)
+        plan = plan + recRes[1] + [a]
+        acted = True
+        break
+    if not acted:
+      return (False, "No relevant actions")
 
-def tryPlan(actions, i, g, planFunction, tries):
+def createPlan(actions, i, g, planFunction, tries):
   t = 0
   failures = []
   while t < tries:
