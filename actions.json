@@ -1,0 +1,99 @@
+[
+  {
+    "name" : "sit and spin",
+    "pre" : {},
+    "post" : {}
+  },
+  {
+    "name" : "get water",
+    "pre" : {
+      "hole" : false
+    },
+    "post" : {
+      "water" : true
+    }
+  },
+  {
+    "name" : "fix hole with straw",
+    "pre" : {
+      "straw" : true
+    },
+    "post" : {
+      "hole" : false
+    }
+  },
+  {
+    "name" : "fix hole with tape",
+    "pre" : {
+      "tape" : true
+    },
+    "post" : {
+      "hole" : false
+    }
+  },
+  {
+    "name" : "drink from a prison toilet",
+    "pre" : {
+      "imprisoned" : true
+    },
+    "post" : {
+      "water" : true
+    }
+  },
+  {
+    "name" : "get arrested",
+    "pre" : {
+      "wanted" : true,
+      "imprisoned" : false
+    },
+    "post" : {
+      "imprisoned" : true
+    }
+  },
+  {
+    "name" : "stab a stranger",
+    "pre" : {
+      "knife" : true
+    },
+    "post" : {
+      "wanted" : true
+    }
+  },
+  {
+    "name" : "cut straw with knife",
+    "pre" : {
+      "wheat" : true,
+      "knife" : true
+    },
+    "post" : {
+      "wheat" : false,
+      "straw" : true
+    }
+  },
+  {
+    "name" : "harvest field",
+    "pre" : {
+      "field" : true
+    },
+    "post" : {
+      "field" : false,
+      "wheat" : true
+    }
+  },
+  {
+    "name" : "burn field",
+    "pre" : {
+      "field" : true
+    },
+    "post" : {
+      "field" : false
+    }
+  },
+  {
+    "name" : "take knife",
+    "pre" : {},
+    "post" : {
+      "knife" : true
+    }
+  }
+]
