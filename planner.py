@@ -1,21 +1,4 @@
-import json
 from random import shuffle
-
-def loadActions(source_fname):
-  af = open(source_fname)
-  afJson = json.load(af)
-  af.close()
-
-  al = []
-  for aConfig in afJson:
-    newAction = [set(), set(), set(), set(), aConfig['name']]
-    for k, v in aConfig['pre'].iteritems():
-      newAction[0 if v else 1].add(k)
-    for k, v in aConfig['post'].iteritems():
-      newAction[2 if v else 3].add(k)
-    al.append(newAction)
-
-  return al
 
 ## action meets all preconditions, and would make some change to the current state
 def actionValid(action, state):
@@ -25,7 +8,7 @@ def actionValid(action, state):
 def actionRelevant(action, sg):
   return not sg[0].isdisjoint(action[2]) or not sg[1].isdisjoint(action[3])
 
-def planForward(i, g):
+def planForward(actions, i, g):
   plan = []
   state = i.copy()
   pastStates = [state.copy()]
@@ -47,7 +30,7 @@ def planForward(i, g):
     if not acted:
       return (False, "No valid actions")
 
-def planBackward(i, g):
+def planBackward(actions, i, g):
   plan = []
   sg = [g[0].copy(), g[1].copy()]
   pastSgs = [[sg[0].copy(), sg[1].copy()]]
@@ -70,43 +53,20 @@ def planBackward(i, g):
     if not acted:
       return (False, "No relevant actions")
 
-def planSTRIPS(i, g):
+def planSTRIPS(actions, i, g):
   plan = []
   while True:
     pass
 
-def tryPlan(i, g, planFunction, tries):
+def tryPlan(actions, i, g, planFunction, tries):
   t = 0
   failures = []
   while t < tries:
     t += 1
-    res = planFunction(i, g)
+    res = planFunction(actions, i, g)
     if res[0]:
       print("Success after {0} tries".format(t))
       return (res[0], res[1], failures)
     else:
       failures.append(res[1])
   return (False, "No plan found after {0} tries".format(tries), failures)
-
-source_fname = 'actions.json'
-
-actions = loadActions(source_fname)
-
-initialState = set(['hole', 'field'])
-goals = [set(['water']), set()]
-
-# res = planForward(initialState, goals, 20)
-# res = planBackward(initialState, goals, 20)
-# res = planSTRIPS(initialState, goals)
-
-res = tryPlan(initialState, goals, planForward, 10)
-
-if res[0]:
-  print("Success! \nCreated plan: {0}{1}{2}".format(" -> ".join(res[1]),"\nReasons for plan failure:\n" if len(res[2]) > 0 else "", "\n".join(res[2])))
-else:
-  print("Failure: {0}\nReasons for plan failure:\n{1}".format(res[1], "\n".join(res[2])))
-
-# a = set(['straw', 'water'])
-# b = set(['mud', 'straw', 'water'])
-
-# print(b - a)

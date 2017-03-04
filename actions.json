@@ -93,7 +93,9 @@
   },
   {
     "name" : "take knife",
-    "pre" : {},
+    "pre" : {
+      "imprisoned" : false
+    },
     "post" : {
       "knife" : true
     }
