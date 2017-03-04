@@ -47,7 +47,9 @@
       "imprisoned" : false
     },
     "post" : {
-      "imprisoned" : true
+      "wanted" : false,
+      "imprisoned" : true,
+      "knife" : false
     }
   },
   {
@@ -94,6 +96,15 @@
     "pre" : {},
     "post" : {
       "knife" : true
+    }
+  },
+  {
+    "name" : "throw knife away",
+    "pre" : {
+      "knife" : true
+    },
+    "post" : {
+      "knife" : false
     }
   }
 ]

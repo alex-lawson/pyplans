@@ -21,47 +21,40 @@ def loadActions(source_fname):
 def actionValid(action, state):
   return state >= action[0] and state.isdisjoint(action[1]) and (len(action[2] - state) > 0 or not state.isdisjoint(action[3]))
 
-# ## action could have set a value in the current state
-# ## and that value previously would have matched the initial state
-# def actionRelevant(action, currentState, initialState):
-#   return len((currentState & action[2]) - initialState) > 0 or len((action[3] - currentState) & initialState) > 0
-
+## action achieves one or more conditions contained in the subgoals
 def actionRelevant(action, sg):
   return not sg[0].isdisjoint(action[2]) or not sg[1].isdisjoint(action[3])
 
-def planForward(i, g, limit):
+def planForward(i, g):
   plan = []
   state = i.copy()
-  c = limit
+  pastStates = [state.copy()]
   while True:
-    print("stepping with state {0}".format(state))
+    # print("stepping with state {0}".format(state))
     if state >= g[0] and state.isdisjoint(g[1]):
-      return (True, "Generated {0} steps.".format(limit - c), plan)
-    if c <= 0:
-      return (False, "No solution found after {0} steps.".format(limit), plan)
-    c = c - 1
+      return (True, plan)
     shuffle(actions)
     acted = False
     for action in actions:
       if actionValid(action, state):
         plan.append(action[4])
         state = (state | action[2]) - action[3]
+        if state in pastStates:
+          return (False, "Repeat of previously visited state")
+        pastStates.append(state.copy())
         acted = True
         break
     if not acted:
-      return (False, "No valid actions.", plan)
+      return (False, "No valid actions")
 
-def planBackward(i, g, limit):
+def planBackward(i, g):
   plan = []
   sg = [g[0].copy(), g[1].copy()]
-  c = limit
+  pastSgs = [[sg[0].copy(), sg[1].copy()]]
   while True:
-    print("stepping with subgoal {0}".format(sg))
+    # print("stepping with subgoal {0}".format(sg))
     if i >= sg[0] and i.isdisjoint(sg[1]):
-      return (True, "Generated {0} steps.".format(limit - c), plan)
-    if c <= 0:
-      return (False, "No solution found after {0} steps.".format(limit), plan)
-    c = c - 1
+      return (True, plan)
     shuffle(actions)
     acted = False
     for action in actions:
@@ -69,11 +62,31 @@ def planBackward(i, g, limit):
         plan.insert(0, action[4])
         sg[0] = (sg[0] - action[2]) | action[0]
         sg[1] = (sg[1] - action[3]) | action[1]
+        if sg in pastSgs:
+          return (False, "Repeat of previously visited subgoal set")
+        pastSgs.append([sg[0].copy(), sg[1].copy()])
         acted = True
         break
     if not acted:
-      return (False, "No relevant actions.", plan)
+      return (False, "No relevant actions")
 
+def planSTRIPS(i, g):
+  plan = []
+  while True:
+    pass
+
+def tryPlan(i, g, planFunction, tries):
+  t = 0
+  failures = []
+  while t < tries:
+    t += 1
+    res = planFunction(i, g)
+    if res[0]:
+      print("Success after {0} tries".format(t))
+      return (res[0], res[1], failures)
+    else:
+      failures.append(res[1])
+  return (False, "No plan found after {0} tries".format(tries), failures)
 
 source_fname = 'actions.json'
 
@@ -83,9 +96,15 @@ initialState = set(['hole', 'field'])
 goals = [set(['water']), set()]
 
 # res = planForward(initialState, goals, 20)
-res = planBackward(initialState, goals, 20)
+# res = planBackward(initialState, goals, 20)
+# res = planSTRIPS(initialState, goals)
 
-print("{0}: {1}\nPlan: {2}".format("Success" if res[0] else "Failure", res[1], " -> ".join(res[2])))
+res = tryPlan(initialState, goals, planForward, 10)
+
+if res[0]:
+  print("Success! \nCreated plan: {0}{1}{2}".format(" -> ".join(res[1]),"\nReasons for plan failure:\n" if len(res[2]) > 0 else "", "\n".join(res[2])))
+else:
+  print("Failure: {0}\nReasons for plan failure:\n{1}".format(res[1], "\n".join(res[2])))
 
 # a = set(['straw', 'water'])
 # b = set(['mud', 'straw', 'water'])
