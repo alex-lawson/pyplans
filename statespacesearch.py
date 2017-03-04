@@ -21,10 +21,13 @@ def loadActions(source_fname):
 def actionValid(action, state):
   return state >= action[0] and state.isdisjoint(action[1]) and (len(action[2] - state) > 0 or not state.isdisjoint(action[3]))
 
-## action could have set a value in the current state
-## and that value previously would have matched the initial state
-def actionRelevant(action, currentState, initialState):
-  return len((currentState & action[2]) - initialState) > 0 or len((action[3] - currentState) & initialState) > 0
+# ## action could have set a value in the current state
+# ## and that value previously would have matched the initial state
+# def actionRelevant(action, currentState, initialState):
+#   return len((currentState & action[2]) - initialState) > 0 or len((action[3] - currentState) & initialState) > 0
+
+def actionRelevant(action, sg):
+  return not sg[0].isdisjoint(action[2]) or not sg[1].isdisjoint(action[3])
 
 def planForward(i, g, limit):
   plan = []
@@ -50,11 +53,11 @@ def planForward(i, g, limit):
 
 def planBackward(i, g, limit):
   plan = []
-  state = (i | g[0]) - g[1]
+  sg = [g[0].copy(), g[1].copy()]
   c = limit
   while True:
-    print("stepping with state {0}".format(state))
-    if state == i:
+    print("stepping with subgoal {0}".format(sg))
+    if i >= sg[0] and i.isdisjoint(sg[1]):
       return (True, "Generated {0} steps.".format(limit - c), plan)
     if c <= 0:
       return (False, "No solution found after {0} steps.".format(limit), plan)
@@ -62,10 +65,10 @@ def planBackward(i, g, limit):
     shuffle(actions)
     acted = False
     for action in actions:
-      if actionRelevant(action, state, initialState):
+      if actionRelevant(action, sg):
         plan.insert(0, action[4])
-        state = (state - action[2]) | action[3]
-        state = (state | action[0]) - action[1]
+        sg[0] = (sg[0] - action[2]) | action[0]
+        sg[1] = (sg[1] - action[3]) | action[1]
         acted = True
         break
     if not acted:
