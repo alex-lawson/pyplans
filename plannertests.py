@@ -31,8 +31,3 @@ if res[0]:
   print("Success! \nCreated plan: {0}{1}{2}".format(planString,"\nReasons for plan failure:\n" if len(res[2]) > 0 else "", "\n".join(res[2])))
 else:
   print("Failure: {0}\nReasons for plan failure:\n{1}".format(res[1], "\n".join(res[2])))
-
-# a = set(['straw', 'water'])
-# b = set(['mud', 'straw', 'water'])
-
-# print(b - a)
